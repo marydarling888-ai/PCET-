@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PCET - Patient Cost Estimator Tool</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A0A12">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A12; --surface:#15151F; --surface2:#1D1D2C; --surface3:#24243A;
+    --line:rgba(255,255,255,.08); --line-soft:rgba(255,255,255,.05);
+    --text:#F3F2FA; --text-dim:#8B899E; --text-faint:#5C5A70;
+    --violet:#7C5CFF; --pink:#FF4FA0; --gold:#F5C24D; --mint:#34D399; --coral:#FF5C72;
+    --grad: linear-gradient(135deg,var(--violet),var(--pink));
+    --font-display:'Sora','Segoe UI',system-ui,sans-serif;
+    --font-body:'Inter','Segoe UI',system-ui,sans-serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ background:var(--bg); }
+  body{ font-family:var(--font-body); color:var(--text); min-height:100vh;
+    padding:16px; padding-bottom:104px; -webkit-font-smoothing:antialiased; }
+  .container{ max-width:600px; margin:auto; }
+
+  /* ---- app bar ---- */
+  .appbar{ display:flex; align-items:center; justify-content:space-between; padding:6px 2px 18px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .logo-mark{ width:34px; height:34px; border-radius:10px; flex-shrink:0; display:block;
+    box-shadow:0 4px 16px rgba(14,124,116,.4); }
+  .logo-mark svg{ width:100%; height:100%; display:block; }
+  .wordmark{ font-family:var(--font-display); font-weight:800; font-size:1.2rem; letter-spacing:-.02em; }
+  .brand-sub{ font-size:.72rem; color:var(--text-faint); font-weight:500; }
+
+  /* ---- hero ---- */
+  .hero{ position:relative; overflow:hidden; border-radius:24px; padding:24px 22px;
+    background:var(--surface); border:1px solid var(--line); margin-bottom:20px; }
+  .hero::before{ content:''; position:absolute; width:220px; height:220px; border-radius:50%;
+    background:var(--grad); opacity:.35; filter:blur(50px); top:-90px; right:-70px; pointer-events:none; }
+  .hero::after{ content:''; position:absolute; width:160px; height:160px; border-radius:50%;
+    background:var(--gold); opacity:.18; filter:blur(46px); bottom:-70px; left:-50px; pointer-events:none; }
+  .hero > *{ position:relative; }
+  .hero-label{ font-size:.82rem; color:var(--text-dim); font-weight:500; }
+  .hero-number{ font-family:var(--font-display); font-size:2.6rem; font-weight:800; letter-spacing:-.02em;
+    margin:2px 0 2px; font-variant-numeric:tabular-nums; }
+  .hero-sub{ font-size:.82rem; color:var(--text-dim); margin-bottom:14px; }
+  .hero-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+  .hero-empty h1{ font-family:var(--font-display); font-size:1.35rem; font-weight:700; line-height:1.3; margin-bottom:8px; max-width:22ch; }
+  .hero-empty p{ font-size:.88rem; color:var(--text-dim); line-height:1.55; max-width:34ch; margin-bottom:18px; }
+
+  /* ---- section heads ---- */
+  h2.section{ font-family:var(--font-display); font-size:1.05rem; font-weight:700; margin:2px 0 14px; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:18px; margin-bottom:16px; }
+
+  /* ---- form controls ---- */
+  label{ display:block; font-size:.8rem; font-weight:600; color:var(--text-dim); margin:14px 0 6px; }
+  label:first-of-type{ margin-top:0; }
+  input,select{ width:100%; padding:12px 13px; background:var(--surface2); border:1px solid var(--line);
+    border-radius:12px; font-size:.95rem; color:var(--text); font-family:var(--font-body); }
+  input::placeholder{ color:var(--text-faint); }
+  input:focus,select:focus{ outline:none; border-color:var(--violet); box-shadow:0 0 0 3px rgba(124,92,255,.22); }
+  select{ appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238B899E'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:32px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* ---- buttons ---- */
+  .btn-grad,.btn-solid,.btn-ghost{ display:block; width:100%; text-align:center; margin-top:16px; padding:14px;
+    border:none; border-radius:14px; font-size:.95rem; font-weight:700; cursor:pointer; font-family:var(--font-body); }
+  .btn-grad{ background:var(--grad); color:#0A0A12; box-shadow:0 8px 22px rgba(255,79,160,.28); }
+  .btn-solid.mint{ background:var(--mint); color:#08150F; }
+  .btn-solid.coral{ background:var(--coral); color:#22060A; }
+  .btn-ghost{ background:transparent; color:var(--text-dim); border:1px solid var(--line); font-weight:600; }
+  .btn-ghost.danger{ color:var(--coral); border-color:rgba(255,92,114,.25); margin-top:14px; padding:10px; font-size:.85rem; }
+  .btn-ghost.small{ margin-top:0; }
+  .how-link{ background:none; border:none; color:var(--violet); font-size:.78rem; font-weight:700;
+    cursor:pointer; padding:8px 0 0; display:inline-block; font-family:var(--font-body); }
+  .how-panel{ margin-top:8px; padding:11px 13px; background:var(--surface3); border-radius:12px;
+    font-size:.78rem; color:var(--text-dim); line-height:1.65; }
+  .how-panel div{ padding:2px 0; }
+
+  /* ---- future-developments animated reel ---- */
+  .future-reel{ position:relative; height:190px; border-radius:16px; overflow:hidden;
+    background:var(--surface2); border:1px solid var(--line-soft); margin-top:4px; }
+  .future-reel::before{ content:''; position:absolute; width:160px; height:160px; border-radius:50%;
+    background:var(--grad); opacity:.22; filter:blur(40px); top:-60px; right:-50px; pointer-events:none; }
+  .future-frame{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; padding:22px; opacity:0; animation:reelCycle 16s infinite; }
+  .future-frame .ic{ font-size:1.9rem; margin-bottom:10px; }
+  .future-frame h4{ font-family:var(--font-display); font-size:1rem; font-weight:700; margin-bottom:6px; position:relative; }
+  .future-frame p{ font-size:.8rem; color:var(--text-dim); max-width:30ch; line-height:1.55; position:relative; }
+  .future-frame:nth-child(1){ animation-delay:0s; }
+  .future-frame:nth-child(2){ animation-delay:4s; }
+  .future-frame:nth-child(3){ animation-delay:8s; }
+  .future-frame:nth-child(4){ animation-delay:12s; }
+  @keyframes reelCycle{ 0%{opacity:0;} 3%{opacity:1;} 22%{opacity:1;} 25%{opacity:0;} 100%{opacity:0;} }
+  .future-dots{ display:flex; gap:6px; justify-content:center; margin-top:10px; }
+  .future-dots span{ width:6px; height:6px; border-radius:50%; background:var(--line); animation:dotPulse 16s infinite; }
+  .future-dots span:nth-child(1){ animation-delay:0s; }
+  .future-dots span:nth-child(2){ animation-delay:4s; }
+  .future-dots span:nth-child(3){ animation-delay:8s; }
+  .future-dots span:nth-child(4){ animation-delay:12s; }
+  @keyframes dotPulse{ 0%{background:var(--line);} 3%{background:var(--violet);} 22%{background:var(--violet);} 25%{background:var(--line);} 100%{background:var(--line);} }
+  @media (prefers-reduced-motion:reduce){
+    .future-frame{ animation:none; opacity:0; }
+    .future-frame:nth-child(1){ opacity:1; }
+    .future-dots span{ animation:none; }
+    .future-dots span:nth-child(1){ background:var(--violet); }
+  }
+
+  /* ---- chips ---- */
+  .chip{ display:inline-flex; align-items:center; padding:4px 10px; border-radius:20px; font-size:.72rem;
+    font-weight:600; background:var(--surface2); color:var(--text-dim); border:1px solid var(--line-soft); }
+  .chip.light{ background:rgba(255,255,255,.08); color:var(--text); }
+  .chips-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+
+  /* ---- plan / result cards ---- */
+  .ins-card{ position:relative; background:var(--surface2); border-radius:18px; padding:16px 16px 16px 20px;
+    margin-bottom:12px; border:1px solid var(--line-soft); }
+  .ins-card::before{ content:''; position:absolute; left:0; top:14px; bottom:14px; width:3px; border-radius:3px; }
+  .ins-card.p-primary::before{ background:var(--gold); }
+  .ins-card.p-secondary::before{ background:var(--violet); }
+  .ins-card.win::before{ background:var(--mint); }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .ins-card h3{ font-family:var(--font-display); font-size:1.05rem; font-weight:700; overflow-wrap:anywhere; }
+  .rank-badge{ flex-shrink:0; font-size:.7rem; font-weight:700; padding:4px 10px; border-radius:20px; white-space:nowrap; }
+  .rank-badge.primary{ background:rgba(245,194,77,.16); color:var(--gold); }
+  .rank-badge.secondary{ background:rgba(124,92,255,.16); color:#B7A6FF; }
+  .winner-badge{ background:rgba(52,211,153,.16); color:var(--mint); flex-shrink:0; font-size:.7rem; font-weight:700;
+    padding:4px 10px; border-radius:20px; white-space:nowrap; }
+  .stat-line{ display:flex; justify-content:space-between; align-items:baseline; font-size:.83rem; color:var(--text-dim);
+    margin-top:10px; }
+  .stat-line b{ color:var(--text); font-weight:700; font-variant-numeric:tabular-nums; }
+  .stat-line b i{ font-style:normal; color:var(--text-dim); font-weight:500; }
+  .progress{ background:var(--surface3); border-radius:10px; height:8px; margin-top:6px; overflow:hidden; }
+  .progress > div{ background:var(--grad); height:100%; border-radius:10px; }
+  .result-row{ display:flex; justify-content:space-between; align-items:baseline; padding-top:8px; font-size:.88rem; color:var(--text-dim); }
+  .total{ font-family:var(--font-display); font-size:1.3rem; font-weight:800; color:var(--text); font-variant-numeric:tabular-nums; }
+  .empty{ text-align:center; color:var(--text-dim); padding:30px 10px; font-size:.88rem; line-height:1.6; }
+
+  /* ---- nav dock ---- */
+  nav{ position:fixed; left:16px; right:16px; bottom:14px; max-width:568px; margin:auto;
+    background:rgba(21,21,31,.9); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line); border-radius:22px; display:flex; padding:6px; z-index:10;
+    box-shadow:0 12px 32px rgba(0,0,0,.45); }
+  nav button{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 2px;
+    border:none; background:none; font-size:.66rem; font-weight:600; color:var(--text-faint); cursor:pointer;
+    border-radius:16px; font-family:var(--font-body); }
+  nav button .ic{ font-size:1.05rem; line-height:1; }
+  nav button.on{ color:var(--text); background:var(--surface2); }
+
+  .page{ display:none; } .page.on{ display:block; }
+  .small-note{ font-size:.8rem; color:var(--text-dim); line-height:1.6; margin-top:6px; }
+
+  /* ---- disclaimer overlay ---- */
+  .disclaimer-overlay{ display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center;
+    padding:30px; text-align:center; background:radial-gradient(circle at 30% 20%,#241a3d,var(--bg) 60%); }
+  .disclaimer-overlay.show{ display:flex; }
+  .disclaimer-box{ max-width:400px; }
+  .disclaimer-box h2{ font-family:var(--font-display); font-size:1.3rem; font-weight:700; margin:16px 0 12px; }
+  .disclaimer-box p{ font-size:.92rem; line-height:1.65; color:var(--text-dim); }
+  .disclaimer-box .btn-grad{ max-width:260px; margin:24px auto 0; }
+
+  /* ---- spending log ---- */
+  .tx-row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--line-soft); }
+  .tx-row:last-child{ border-bottom:none; }
+  .tx-row .info{ flex:1; min-width:0; font-size:.85rem; overflow-wrap:anywhere; }
+  .tx-row .info b{ display:block; font-size:.92rem; font-weight:700; margin-bottom:2px; }
+  .tx-row .info span{ color:var(--text-dim); font-size:.78rem; }
+  .tx-row .amt{ font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tx-row .del{ background:none; border:none; color:var(--text-faint); font-size:1rem; cursor:pointer; padding:4px 2px; }
+  .summary-row{ display:flex; justify-content:space-between; padding:7px 0; font-size:.88rem; color:var(--text-dim); }
+  .summary-row b{ color:var(--text); font-variant-numeric:tabular-nums; }
+  .cat-label{ font-size:.76rem; margin-top:4px; }
+
+  @media (prefers-reduced-motion:no-preference){ .ins-card,.card{ transition:border-color .15s; } }
+</style>
+</head>
+<body>
+
+<!-- FIRST-LAUNCH DISCLAIMER GATE -->
+<div class="disclaimer-overlay" id="disclaimerOverlay">
+  <div class="disclaimer-box">
+    <div class="logo-mark" style="width:52px;height:52px;border-radius:16px;margin:0 auto;"><svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PCET logo">
+<title>PCET logo - shield with dollar sign</title>
+<rect x="16" y="16" width="480" height="480" rx="110" fill="#0e7c74"/>
+<path d="M256 96 L358 132 L358 232 C358 314 310 366 256 396 C202 366 154 314 154 232 L154 132 Z" fill="#123a3a" stroke="#0a2323" stroke-width="6" stroke-linejoin="round"/>
+<text x="256" y="292" text-anchor="middle" font-family="Georgia, &#39;Times New Roman&#39;, serif" font-size="150" font-weight="700" fill="#fdfaf3">$</text>
+</svg></div>
+    <h2>Before you start</h2>
+    <p>PCET gives estimates only — it isn't medical advice. Always verify costs with your insurer. Everything you enter stays on this device.</p>
+    <button class="btn-grad" onclick="acceptDisclaimer()">I understand</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="appbar">
+    <div class="brand">
+      <span class="logo-mark" aria-hidden="true"><svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PCET logo">
+<title>PCET logo - shield with dollar sign</title>
+<rect x="16" y="16" width="480" height="480" rx="110" fill="#0e7c74"/>
+<path d="M256 96 L358 132 L358 232 C358 314 310 366 256 396 C202 366 154 314 154 232 L154 132 Z" fill="#123a3a" stroke="#0a2323" stroke-width="6" stroke-linejoin="round"/>
+<text x="256" y="292" text-anchor="middle" font-family="Georgia, &#39;Times New Roman&#39;, serif" font-size="150" font-weight="700" fill="#fdfaf3">$</text>
+</svg></span>
+      <span class="wordmark">PCET</span>
+    </div>
+    <span class="brand-sub">On-device only</span>
+  </div>
+
+  <!-- PAGE: MY PLANS -->
+  <div class="page on" id="page-wallet">
+    <div class="hero" id="heroCard"></div>
+    <div class="card">
+      <h2 class="section">Your plans</h2>
+      <div id="insList"></div>
+      <button class="btn-grad" onclick="startAdd()">Add a plan</button>
+    </div>
+  </div>
+
+  <!-- PAGE: ADD INSURANCE -->
+  <div class="page" id="page-add">
+    <div class="card">
+      <h2 class="section" id="addTitle">Add insurance</h2>
+      <label>Payer name (e.g., Aetna, UHC, BCBS)</label>
+      <input type="text" id="payer" placeholder="Insurance company name">
+      <label>Plan type</label>
+      <select id="planType">
+        <option>PPO</option><option>HMO</option><option>EPO</option>
+        <option>POS</option><option>Medicare</option><option>Medicaid</option><option>Other</option>
+      </select>
+      <label>Coverage</label>
+      <select id="coverage"><option value="Individual">Individual</option><option value="Family">Family</option></select>
+      <div class="row2">
+        <div><label>Deductible ($)</label><input type="number" id="ded" placeholder="1500"></div>
+        <div><label>OOP max ($)</label><input type="number" id="oop" placeholder="6000"></div>
+      </div>
+      <div class="row2">
+        <div><label>Deductible met ($)</label><input type="number" id="dedMet" placeholder="0"></div>
+        <div><label>OOP met ($)</label><input type="number" id="oopMet" placeholder="0"></div>
+      </div>
+      <div class="row2">
+        <div><label>Coinsurance %</label><input type="number" id="coins" value="20"></div>
+        <div><label>Copay ($)</label><input type="number" id="copay" value="0"></div>
+      </div>
+      <label>This plan is</label>
+      <select id="rank"><option value="primary">Primary</option><option value="secondary">Secondary</option></select>
+      <button class="btn-grad" id="saveBtn" onclick="saveInsurance()">Save plan</button>
+      <button class="btn-ghost" onclick="cancelAdd()">Back</button>
+    </div>
+  </div>
+
+  <!-- PAGE: COMPARE -->
+  <div class="page" id="page-compare">
+    <div class="card">
+      <h2 class="section">Which plan costs less?</h2>
+      <label>Service / procedure</label>
+      <input type="text" id="svc" placeholder="e.g., MRI, Office Visit">
+      <label>Estimated allowed amount ($)</label>
+      <input type="number" id="allowed" placeholder="e.g., 500">
+      <label>Service has a copay?</label>
+      <select id="hasCopay"><option value="no">No</option><option value="yes">Yes</option></select>
+      <button class="btn-grad" onclick="comparePlans()">Compare my plans</button>
+    </div>
+    <div id="compareResults"></div>
+  </div>
+
+  <!-- PAGE: DEDUCTIBLE TRACKER -->
+  <div class="page" id="page-track">
+    <div class="card">
+      <h2 class="section">Deductible progress</h2>
+      <div id="trackList"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">New plan year?</h2>
+      <p class="small-note">Deductibles and OOP amounts reset every January. Use this to zero out all "met" amounts when your plan year renews.</p>
+      <button class="btn-solid coral" onclick="resetAccum()">Reset all "met" amounts</button>
+    </div>
+  </div>
+
+  <!-- PAGE: SPENDING LOG -->
+  <div class="page" id="page-log">
+    <div class="card">
+      <h2 class="section">Log a visit or service</h2>
+      <label>Date</label>
+      <input type="date" id="txDate">
+      <label>Provider / facility</label>
+      <input type="text" id="txProvider" placeholder="e.g., Dr. Smith, City Imaging">
+      <label>Service</label>
+      <input type="text" id="txService" placeholder="e.g., Office Visit, MRI">
+      <label>Category</label>
+      <select id="txCategory">
+        <option>Office Visit</option><option>Specialist</option><option>Lab</option>
+        <option>Imaging</option><option>ER / Urgent Care</option><option>Pharmacy</option>
+        <option>Dental</option><option>Vision</option><option>Procedure</option><option>Other</option>
+      </select>
+      <label>Which plan?</label>
+      <select id="txPlan"></select>
+      <div class="row2">
+        <div><label>Billed amount ($)</label><input type="number" id="txBilled" placeholder="e.g., 350"></div>
+        <div><label>You paid ($)</label><input type="number" id="txPaid" placeholder="e.g., 70"></div>
+      </div>
+      <button class="btn-grad" onclick="saveTx()">Save entry</button>
+    </div>
+    <div class="card">
+      <h2 class="section">This year so far</h2>
+      <div id="txSummary"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">History</h2>
+      <div id="txList"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: DISCLAIMER / ABOUT -->
+  <div class="page" id="page-about">
+    <div class="card">
+      <h2 class="section">Disclaimer</h2>
+      <p class="small-note">
+        PCET provides <b style="color:var(--text)">estimates only</b> and does not provide medical advice.
+        Estimates are based on the numbers you enter and standard cost-sharing rules; actual claims may
+        differ due to network discounts, bundling, medical necessity rules, and payer processing.
+        Always verify costs with your insurance provider.<br><br>
+        All data you enter is stored <b style="color:var(--text)">only on your device</b> and is never sent
+        to any server. The developer has no access to your data.<br><br>
+        Uninstalling the app or clearing its data will permanently delete your saved plans.
+      </p>
+    </div>
+    <div class="card">
+      <h2 class="section">About</h2>
+      <p class="small-note">PCET (Patient Cost Estimator Tool) — store insurance plans, track deductibles, and compare out-of-pocket costs. Works fully offline.</p>
+    </div>
+    <div class="card">
+      <h2 class="section">What's next</h2>
+      <div class="future-reel">
+        <div class="future-frame"><span class="ic">&#128279;</span><h4>Insurance EDI integration</h4>
+          <p>Connect directly to insurer EDI feeds for real-time eligibility and benefits data — no more manual entry.</p></div>
+        <div class="future-frame"><span class="ic">&#9989;</span><h4>Instant coverage checks</h4>
+          <p>See exactly what's covered for a specific service before you book it, straight from your payer.</p></div>
+        <div class="future-frame"><span class="ic">&#128179;</span><h4>Pay from your coverage</h4>
+          <p>Use PCET like a card — pay providers directly against your benefits, right from the app.</p></div>
+        <div class="future-frame"><span class="ic">&#128228;</span><h4>Share your records</h4>
+          <p>Securely send your insurance and visit history to a new provider in one tap.</p></div>
+      </div>
+      <div class="future-dots"><span></span><span></span><span></span><span></span></div>
+      <p class="small-note" style="margin-top:12px;">These are planned features and aren't available yet — shown here so you know where PCET is headed.</p>
+    </div>
+  </div>
+
+  <nav>
+    <button class="on" data-page="wallet" onclick="go(&#39;wallet&#39;,this)"><span class="ic">&#128179;</span>Plans</button>
+    <button data-page="compare" onclick="go(&#39;compare&#39;,this)"><span class="ic">&#9878;&#65039;</span>Compare</button>
+    <button data-page="track" onclick="go(&#39;track&#39;,this)"><span class="ic">&#128200;</span>Track</button>
+    <button data-page="log" onclick="go(&#39;log&#39;,this)"><span class="ic">&#128221;</span>Spending</button>
+    <button data-page="about" onclick="go(&#39;about&#39;,this)"><span class="ic">&#8505;&#65039;</span>About</button>
+  </nav>
+</div>
+
+<script>
+/* ---------- storage ---------- */
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+function num(v){ var n=Number(v); return isFinite(n)?n:0; }
+function genId(){ return 'id_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
+function money(n){ return Number(n || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function load(){
+  try{
+    var raw = JSON.parse(lsGet('insWallet_v1'));
+    if(!Array.isArray(raw)) return [];
+    var changed = false;
+    var list = raw.filter(function(p){ return p && typeof p==='object'; }).map(function(p){
+      var c = Number(p.coins); if(p.coins==null || !isFinite(c) || c<0 || c>100) c = 20;
+      var ded = Math.max(0,num(p.ded)), oop = Math.max(0,num(p.oop));
+      var id = p.id; if(!id){ id = genId(); changed = true; }
+      return { id:id, payer:String(p.payer||'Unnamed plan'), planType:String(p.planType||'Other'),
+        coverage:String(p.coverage||'Individual'), ded:ded, oop:oop,
+        dedMet:Math.min(ded,Math.max(0,num(p.dedMet))), oopMet:Math.min(oop,Math.max(0,num(p.oopMet))),
+        coins:c, copay:Math.max(0,num(p.copay)), rank:p.rank==='primary'?'primary':'secondary' };
+    });
+    if(changed) lsSet('insWallet_v1', JSON.stringify(list));
+    return list;
+  }catch(e){ return []; }
+}
+function saveList(l){
+  if(!lsSet('insWallet_v1', JSON.stringify(l))){ alert('Could not save: device storage is full or blocked.'); return false; }
+  return true;
+}
+function refreshAll(){ renderHero(); renderInsList(); renderTracker(); renderLog(); }
+
+/* ---------- spending log storage ---------- */
+function txLoad(){
+  try{
+    var d = JSON.parse(lsGet('insWallet_tx_v1'));
+    if(!Array.isArray(d)) return [];
+    return d.filter(function(t){ return t && typeof t==='object'; }).map(function(t){
+      return { id:t.id||genId(), date:String(t.date||''), provider:String(t.provider||''),
+        service:String(t.service||''), category:String(t.category||'Other'),
+        planId:String(t.planId||''), billed:Math.max(0,num(t.billed)), paid:Math.max(0,num(t.paid)) };
+    });
+  }catch(e){ return []; }
+}
+function txSave(l){
+  if(!lsSet('insWallet_tx_v1', JSON.stringify(l))){ alert('Could not save: device storage is full or blocked.'); return false; }
+  return true;
+}
+function getPlanName(id){
+  if(!id) return 'Self-pay / no insurance';
+  var p = load().filter(function(x){ return x.id===id; })[0];
+  return p ? p.payer : 'Plan removed';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+/* ---------- disclaimer gate ---------- */
+function acceptDisclaimer(){
+  lsSet('insWallet_disclaimer','accepted');
+  document.getElementById('disclaimerOverlay').classList.remove('show');
+}
+if(lsGet('insWallet_disclaimer')==='accepted'){
+  document.getElementById('disclaimerOverlay').classList.remove('show');
+}else{
+  document.getElementById('disclaimerOverlay').classList.add('show');
+}
+
+/* ---------- navigation ---------- */
+function go(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  var target = btn || document.querySelector('nav button[data-page="'+(name==='add'?'wallet':name)+'"]');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
+  if(target) target.classList.add('on');
+  if(name==='log'){
+    renderLog();
+    var d = document.getElementById('txDate');
+    if(d && !d.value) d.value = new Date().toISOString().slice(0,10);
+  }
+  window.scrollTo(0,0);
+}
+
+/* ---------- add / save plans ---------- */
+function startAdd(){
+  document.getElementById('addTitle').textContent='Add insurance';
+  document.getElementById('payer').value=''; document.getElementById('payer').style.border='';
+  document.getElementById('ded').value=''; document.getElementById('oop').value='';
+  document.getElementById('dedMet').value=''; document.getElementById('oopMet').value='';
+  document.getElementById('coins').value='20'; document.getElementById('copay').value='0';
+  document.getElementById('rank').value='primary';
+  go('add');
+}
+function cancelAdd(){ go('wallet'); }
+
+function saveInsurance(){
+  var payerEl = document.getElementById('payer');
+  var payer = payerEl.value.trim();
+  if(!payer){ payerEl.focus(); payerEl.style.border='1px solid var(--coral)'; return; }
+  payerEl.style.border='';
+
+  var coinsVal = Number(document.getElementById('coins').value) || 0;
+  if (coinsVal < 0 || coinsVal > 100) coinsVal = 20;
+
+  var ded  = Math.max(0, num(document.getElementById('ded').value));
+  var oop  = Math.max(0, num(document.getElementById('oop').value));
+  var dedMet = Math.min(ded, Math.max(0, Number(document.getElementById('dedMet').value) || 0));
+  var oopMet = Math.min(oop, Math.max(0, Number(document.getElementById('oopMet').value) || 0));
+
+  var plan = {
+    id: genId(),
+    payer: payer,
+    planType: document.getElementById('planType').value,
+    coverage: document.getElementById('coverage').value,
+    ded: ded, oop: oop,
+    dedMet: dedMet, oopMet: oopMet,
+    coins: coinsVal,
+    copay: Math.max(0, num(document.getElementById('copay').value)),
+    rank: document.getElementById('rank').value
+  };
+
+  var list = load();
+  if(plan.rank==='primary') list.forEach(p=>p.rank='secondary');
+  list.push(plan);
+  if(!saveList(list)) return;
+  refreshAll();
+  go('wallet');
+}
+
+/* ---------- hero ---------- */
+function renderHero(){
+  var box = document.getElementById('heroCard');
+  if(!box) return;
+  var list = load();
+  if(!list.length){
+    box.innerHTML = '<div class="hero-empty">'
+      +'<h1>Add your first plan to see where you stand</h1>'
+      +'<p>Track deductibles, out-of-pocket max, and what each visit really costs — all on this device.</p>'
+      +'<button class="btn-grad" style="max-width:220px;margin-top:0;" onclick="startAdd()">Add a plan</button>'
+      +'</div>';
+    return;
+  }
+  var withDed = list.filter(function(p){ return p.ded>0; });
+  var withOop = list.filter(function(p){ return p.oop>0; });
+  var dedLeft = withDed.reduce(function(s,p){ return s+Math.max(0,p.ded-p.dedMet); },0);
+  var oopLeft = withOop.reduce(function(s,p){ return s+Math.max(0,p.oop-p.oopMet); },0);
+  box.innerHTML = '<div class="hero-label">Left toward deductible</div>'
+    +'<div class="hero-number">$'+money(dedLeft)+'</div>'
+    +'<div class="hero-sub">across '+list.length+' plan'+(list.length===1?'':'s')+'</div>'
+    +'<div class="hero-chips">'
+    + (withOop.length ? '<span class="chip light">OOP max left $'+money(oopLeft)+'</span>' : '<span class="chip light">No OOP max set</span>')
+    +'</div>';
+}
+
+/* ---------- render: plans page ---------- */
+function renderInsList(){
+  var list = load();
+  var box = document.getElementById('insList');
+  if(!list.length){ box.innerHTML='<div class="empty">No plans yet.<br>Add your first one below.</div>'; return; }
+  box.innerHTML = list.map(function(p,i){
+    var dp = p.ded>0 ? Math.min(100,Math.round(p.dedMet/p.ded*100)) : 0;
+    var op = p.oop>0 ? Math.min(100,Math.round(p.oopMet/p.oop*100)) : 0;
+    var chips = [p.planType, p.coverage, p.coins+'% coinsurance'];
+    if(p.copay>0) chips.push('Copay $'+p.copay);
+    return '<div class="ins-card '+(p.rank==='primary'?'p-primary':'p-secondary')+'">'
+      +'<div class="card-top"><h3>'+esc(p.payer)+'</h3>'
+      +'<span class="rank-badge '+p.rank+'">'+(p.rank==='primary'?'Primary':'Secondary')+'</span></div>'
+      +'<div class="chips-row" style="margin-top:8px;">'+chips.map(function(c){ return '<span class="chip">'+esc(c)+'</span>'; }).join('')+'</div>'
+      +'<div class="stat-line"><span>Deductible</span><b>$'+p.dedMet+' <i>of</i> $'+p.ded+'</b></div>'
+      +'<div class="progress"><div style="width:'+dp+'%"></div></div>'
+      +'<div class="stat-line"><span>OOP max</span><b>'+(p.oop>0?('$'+p.oopMet+' <i>of</i> $'+p.oop):'<i>not set</i>')+'</b></div>'
+      +'<div class="progress"><div style="width:'+op+'%"></div></div>'
+      +'<button class="btn-ghost danger" onclick="deleteIns('+i+')">Remove plan</button>'
+      +'</div>';
+  }).join('');
+}
+
+function deleteIns(idx){
+  var list = load();
+  if(!list[idx]) return;
+  if(!confirm('Remove '+list[idx].payer+'? This cannot be undone.')) return;
+  list.splice(idx,1);
+  if(list.length && !list.some(function(p){ return p.rank === 'primary'; })){
+    list[0].rank = 'primary';
+  }
+  saveList(list);
+  refreshAll();
+}
+
+/* ---------- compare ---------- */
+function adjudicatePlan(plan, allowed, hasCopay){
+  var steps = [];
+  var oopRemaining = plan.oop > 0 ? Math.max(0, plan.oop - plan.oopMet) : Infinity;
+  steps.push(plan.oop > 0
+    ? 'OOP max remaining: $'+oopRemaining.toFixed(2)+' (of $'+plan.oop+', $'+plan.oopMet+' already met).'
+    : 'No OOP max set on this plan \u2014 no cap applied.');
+
+  if(hasCopay && plan.copay > 0){
+    steps.push('This service has a copay of $'+plan.copay.toFixed(2)+'.');
+    var copayCost = Math.min(plan.copay, allowed);
+    if(copayCost < plan.copay) steps.push('Copay capped at the allowed amount: $'+copayCost.toFixed(2)+'.');
+    var preCap = copayCost;
+    copayCost = Math.min(copayCost, oopRemaining);
+    if(copayCost < preCap) steps.push('Capped further by remaining OOP max: $'+copayCost.toFixed(2)+'.');
+    steps.push('A copay does not stack with deductible or coinsurance for this service.');
+    var pc = Math.round(copayCost*100)/100;
+    steps.push('Patient pays: $'+pc.toFixed(2)+'.');
+    return { patientCost: pc, planPaid: Math.round(Math.max(0, allowed - copayCost)*100)/100, steps: steps };
+  }
+
+  steps.push('Allowed amount for this service: $'+allowed.toFixed(2)+'.');
+  var remainingDed = Math.max(0, plan.ded - plan.dedMet);
+  steps.push('Deductible remaining: $'+remainingDed.toFixed(2)+' (of $'+plan.ded+', $'+plan.dedMet+' already met).');
+  var deductiblePart = Math.min(allowed, remainingDed);
+  steps.push('Applied to deductible: $'+deductiblePart.toFixed(2)+'.');
+  var afterDed = Math.max(0, allowed - deductiblePart);
+  var coinsurancePart = afterDed * (plan.coins / 100);
+  steps.push('Remaining $'+afterDed.toFixed(2)+' at '+plan.coins+'% coinsurance: $'+coinsurancePart.toFixed(2)+'.');
+  var patientCost = deductiblePart + coinsurancePart;
+  var beforeCap = patientCost;
+  patientCost = Math.min(patientCost, oopRemaining);
+  if(patientCost < beforeCap) steps.push('Capped by remaining OOP max: $'+patientCost.toFixed(2)+'.');
+  var pc2 = Math.round(patientCost * 100) / 100;
+  steps.push('Patient pays: $'+pc2.toFixed(2)+'.');
+  var planPaid = Math.max(0, allowed - patientCost);
+  return { patientCost: pc2, planPaid: Math.round(planPaid * 100) / 100, steps: steps };
+}
+
+function calcCOB(primary, secondary, allowed, hasCopay){
+  var primaryResult = adjudicatePlan(primary, allowed, hasCopay);
+  var secondaryResult = adjudicatePlan(secondary, primaryResult.patientCost, false);
+  var finalPatient = Math.max(0, primaryResult.patientCost - secondaryResult.planPaid);
+  var pr = Math.round(finalPatient * 100) / 100;
+  var steps = [
+    'Primary processes the $'+allowed.toFixed(2)+' allowed amount first \u2014 patient owes $'+primaryResult.patientCost.toFixed(2)+' after primary.',
+    'Secondary then processes that remaining $'+primaryResult.patientCost.toFixed(2)+' as its own allowed amount.',
+    'Secondary pays $'+secondaryResult.planPaid.toFixed(2)+' of it.',
+    'Patient responsibility = $'+primaryResult.patientCost.toFixed(2)+' \u2212 $'+secondaryResult.planPaid.toFixed(2)+' = $'+pr.toFixed(2)+'.'
+  ];
+  return { primary: primaryResult, secondary: secondaryResult, patientResponsibility: pr, steps: steps };
+}
+
+function toggleHow(btn){
+  var panel = btn.nextElementSibling;
+  var willShow = panel.hidden;
+  panel.hidden = !willShow;
+  btn.textContent = willShow ? 'Hide steps' : 'How?';
+}
+
+function comparePlans(){
+  var allowed = Number(document.getElementById('allowed').value);
+  var svc = document.getElementById('svc').value.trim();
+  var hasCopay = document.getElementById('hasCopay').value==='yes';
+  var list = load();
+
+  if(!list.length){ document.getElementById('compareResults').innerHTML='<div class="card empty">Add a plan first.</div>'; return; }
+  if(!allowed || allowed<=0){ alert('Enter a valid estimated amount.'); return; }
+
+  list.sort(function(a,b){ return (a.rank==='primary'?-1:1)-(b.rank==='primary'?-1:1); });
+
+  var results = list.map(function(p){ return {p:p, r:adjudicatePlan(p,allowed,hasCopay)}; });
+  var min = Math.min.apply(null, results.map(function(x){ return x.r.patientCost; }));
+
+  var html = '<div class="card"><h2 class="section">Results'+(svc?' for '+esc(svc):'')+' <span style="color:var(--text-dim);font-weight:500;">(est. $'+allowed+')</span></h2>'
+    + results.map(function(x){
+        var win = x.r.patientCost===min;
+        return '<div class="ins-card'+(win?' win':' p-secondary')+'">'
+          +'<div class="card-top"><h3>'+esc(x.p.payer)+'</h3>'+(win?'<span class="winner-badge">Cheapest</span>':'')+'</div>'
+          +'<div class="result-row"><span>Estimated out-of-pocket</span><span class="total">$'+x.r.patientCost.toFixed(2)+'</span></div>'
+          +'<button class="how-link" onclick="toggleHow(this)">How?</button>'
+          +'<div class="how-panel" hidden>'+x.r.steps.map(function(s){ return '<div>'+esc(s)+'</div>'; }).join('')+'</div>'
+          +'</div>';
+      }).join('')
+    +'<p class="small-note">Estimates only. Verify with your insurer.</p></div>';
+
+  var primary = list.find(function(p){ return p.rank==='primary'; });
+  var secondary = list.find(function(p){ return p.rank==='secondary'; });
+  if(primary && secondary){
+    var cob = calcCOB(primary, secondary, allowed, hasCopay);
+    html += '<div class="card"><h2 class="section">If used together (coordination of benefits)</h2>'
+      +'<div class="ins-card p-primary"><h3>'+esc(primary.payer)+'</h3>'
+      +'<div class="result-row"><span>Primary pays</span><span class="total">$'+cob.primary.planPaid.toFixed(2)+'</span></div>'
+      +'<button class="how-link" onclick="toggleHow(this)">How?</button>'
+      +'<div class="how-panel" hidden>'+cob.primary.steps.map(function(s){ return '<div>'+esc(s)+'</div>'; }).join('')+'</div></div>'
+      +'<div class="ins-card p-secondary"><h3>'+esc(secondary.payer)+'</h3>'
+      +'<div class="result-row"><span>Secondary pays</span><span class="total">$'+cob.secondary.planPaid.toFixed(2)+'</span></div>'
+      +'<button class="how-link" onclick="toggleHow(this)">How?</button>'
+      +'<div class="how-panel" hidden>'+cob.secondary.steps.map(function(s){ return '<div>'+esc(s)+'</div>'; }).join('')+'</div></div>'
+      +'<div class="ins-card win"><h3>Your total responsibility</h3>'
+      +'<div class="result-row"><span>You pay</span><span class="total">$'+cob.patientResponsibility.toFixed(2)+'</span></div>'
+      +'<button class="how-link" onclick="toggleHow(this)">How?</button>'
+      +'<div class="how-panel" hidden>'+cob.steps.map(function(s){ return '<div>'+esc(s)+'</div>'; }).join('')+'</div></div>'
+      +'<p class="small-note">COB estimate assumes the secondary payer covers remaining member liability after primary processing. This differs from picking one plan alone — use it when both plans apply to the same claim.</p></div>';
+  }
+
+  document.getElementById('compareResults').innerHTML = html;
+}
+
+/* ---------- tracker ---------- */
+function renderTracker(){
+  var list = load();
+  var box = document.getElementById('trackList');
+  if(!list.length){ box.innerHTML='<div class="empty">No plans to track yet.</div>'; return; }
+  box.innerHTML = list.map(function(p,i){
+    var dp = p.ded>0 ? Math.min(100,Math.round(p.dedMet/p.ded*100)) : 0;
+    var op = p.oop>0 ? Math.min(100,Math.round(p.oopMet/p.oop*100)) : 0;
+    return '<div class="ins-card '+(p.rank==='primary'?'p-primary':'p-secondary')+'"><h3>'+esc(p.payer)+'</h3>'
+      +'<div class="stat-line"><span>Deductible</span><b>$'+p.dedMet+' <i>of</i> $'+p.ded+' ('+dp+'%)</b></div>'
+      +'<div class="progress"><div style="width:'+dp+'%"></div></div>'
+      +'<div class="stat-line"><span>OOP max</span><b>'+(p.oop>0?('$'+p.oopMet+' <i>of</i> $'+p.oop+' ('+op+'%)'):'<i>not set</i>')+'</b></div>'
+      +'<div class="progress"><div style="width:'+op+'%"></div></div>'
+      +'<div class="row2" style="margin-top:12px">'
+      +'<div><label>Deductible met ($)</label><input type="number" id="dedMet'+i+'" value="'+p.dedMet+'" onchange="updateAccum('+i+')"></div>'
+      +'<div><label>OOP met ($)</label><input type="number" id="oopMet'+i+'" value="'+p.oopMet+'" onchange="updateAccum('+i+')"></div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function updateAccum(i){
+  var list = load();
+  if(!list[i]) return;
+  var d = Number(document.getElementById('dedMet'+i).value) || 0;
+  var o = Number(document.getElementById('oopMet'+i).value) || 0;
+  list[i].dedMet = Math.min(list[i].ded, Math.max(0, d));
+  list[i].oopMet = Math.min(list[i].oop, Math.max(0, o));
+  saveList(list);
+  refreshAll();
+}
+
+function resetAccum(){
+  if(!confirm('Set all "met" amounts to $0 for the new plan year?')) return;
+  var list = load();
+  list.forEach(p=>{ p.dedMet=0; p.oopMet=0; });
+  saveList(list);
+  refreshAll();
+}
+
+/* ---------- spending log ---------- */
+function renderTxPlanOptions(){
+  var sel = document.getElementById('txPlan');
+  var cur = sel.value;
+  var list = load();
+  sel.innerHTML = '<option value="">Self-pay / no insurance</option>' + list.map(function(p){
+    return '<option value="'+p.id+'">'+esc(p.payer)+' ('+p.rank+')</option>';
+  }).join('');
+  if(cur==='' || list.some(function(p){ return p.id===cur; })) sel.value = cur;
+}
+function renderTxSummary(){
+  var box = document.getElementById('txSummary');
+  var y = new Date().getFullYear();
+  var list = txLoad().filter(function(t){ return t.date && t.date.slice(0,4)===String(y); });
+  if(!list.length){ box.innerHTML = '<div class="empty">No spending logged for '+y+' yet.</div>'; return; }
+  var totalPaid = 0, totalBilled = 0, byCat = {};
+  list.forEach(function(t){
+    totalPaid += t.paid; totalBilled += t.billed;
+    byCat[t.category] = (byCat[t.category]||0) + t.paid;
+  });
+  var cats = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; });
+  var maxCat = Math.max.apply(null, cats.map(function(c){ return byCat[c]; }));
+  box.innerHTML =
+    '<div class="summary-row"><span>Total you\u2019ve paid ('+y+')</span><b>$'+totalPaid.toFixed(2)+'</b></div>'
+    +'<div class="summary-row"><span>Total billed</span><b>$'+totalBilled.toFixed(2)+'</b></div>'
+    +'<div class="summary-row"><span>Visits logged</span><b>'+list.length+'</b></div>'
+    + cats.map(function(c){
+        var pct = maxCat>0 ? Math.round(byCat[c]/maxCat*100) : 0;
+        return '<div class="cat-label"><span>'+esc(c)+'</span> <b>$'+byCat[c].toFixed(2)+'</b></div>'
+          +'<div class="progress"><div style="width:'+pct+'%"></div></div>';
+      }).join('');
+}
+function renderTxList(){
+  var box = document.getElementById('txList');
+  var list = txLoad().slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  if(!list.length){ box.innerHTML = '<div class="empty">No visits logged yet.</div>'; return; }
+  box.innerHTML = list.map(function(t){
+    return '<div class="tx-row">'
+      +'<div class="info"><b>'+esc(t.service||t.category)+'</b>'
+      +'<span>'+esc(t.date)+' &middot; '+esc(t.provider||'\u2014')+' &middot; '+esc(getPlanName(t.planId))+'</span></div>'
+      +'<div class="amt">$'+t.paid.toFixed(2)+'</div>'
+      +'<button class="del" aria-label="Delete entry" onclick="deleteTx(\''+t.id+'\')">&#128465;&#65039;</button>'
+      +'</div>';
+  }).join('');
+}
+function renderLog(){
+  renderTxPlanOptions();
+  renderTxSummary();
+  renderTxList();
+}
+function saveTx(){
+  var date = document.getElementById('txDate').value;
+  var provider = document.getElementById('txProvider').value.trim();
+  var service = document.getElementById('txService').value.trim();
+  if(!date){ alert('Please enter a date.'); return; }
+  if(!provider && !service){ alert('Enter a provider or a service.'); return; }
+  var tx = {
+    id: genId(),
+    date: date,
+    provider: provider,
+    service: service,
+    category: document.getElementById('txCategory').value,
+    planId: document.getElementById('txPlan').value,
+    billed: Math.max(0, num(document.getElementById('txBilled').value)),
+    paid: Math.max(0, num(document.getElementById('txPaid').value))
+  };
+  var list = txLoad();
+  list.push(tx);
+  if(!txSave(list)) return;
+
+  if(tx.planId){
+    var plans = load();
+    var plan = plans.find(function(p){ return p.id === tx.planId; });
+    if(plan){
+      if(plan.ded > 0) plan.dedMet = Math.min(plan.ded, plan.dedMet + tx.paid);
+      if(plan.oop > 0) plan.oopMet = Math.min(plan.oop, plan.oopMet + tx.paid);
+      saveList(plans);
+    }
+  }
+
+  document.getElementById('txProvider').value = '';
+  document.getElementById('txService').value = '';
+  document.getElementById('txBilled').value = '';
+  document.getElementById('txPaid').value = '';
+  refreshAll();
+}
+function deleteTx(id){
+  if(!confirm('Delete this entry? This cannot be undone.')) return;
+  var list = txLoad().filter(function(t){ return t.id!==id; });
+  txSave(list);
+  renderLog();
+}
+
+/* ---------- init ---------- */
+renderHero();
+renderInsList();
+renderTracker();
+renderLog();
+
+/* January reminder */
+(function(){
+  var y = new Date().getFullYear();
+  if(new Date().getMonth()===0 && lsGet('insWallet_year')!==String(y)){
+    alert('🎉 New year! Insurance deductibles have likely reset. Check the Tracker tab and reset your "Met" amounts if your plan year restarted.');
+    lsSet('insWallet_year',String(y));
+  }
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
